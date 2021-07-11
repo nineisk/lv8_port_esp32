@@ -1,78 +1,136 @@
-# LVGL project for wireless-tag WT\_32\_SC01
+# LVGL project for ESP32
 
-This is an [WT\_32\_SC01] (https://item.taobao.com/item.htm?spm=a2oq0.12575281.0.0.15d11debmmCZdd&ft=t&id=611104447515) from [wireless-tag](http://www.wireless-tag.cn) demo project showcasing LVGL v7 with support for several display controllers(ST7796S) and touch controllers(FT6336U).
+This is an ESP32 demo project showcasing LVGL v7 with support for several display controllers and touch controllers.
+The demo application is the `lv_demo_widgets` project from the [lv_examples](https://github.com/lvgl/lv_examples) repository.
 
-![Example GUI_DEMO](images/board.jpeg)
+- Version of ESP-IDF required 4.2. NOTE: We're trying to make this repo backwards compatible, usage of idf.py is encouraged.
+- Version of LVGL used: 7.9.
+- Version of lv_examples used: 7.9.
 
-Supported display controllers:
+#### Table of content
+- [Get started](#get-started)
+- [Use LVGL in your ESP-IDF project](#use-lvgl-in-your-esp-idf-project)
+- [Use lvgl_esp32_drivers in your project](#use-lvgl_esp32_drivers-in-your-project)
+- [Platformio support](#platformio-support)
+- [ESP32-S2 Support](#esp32-s2-support)
 
-## TFT
+Example demo for TFT displays:
 
-- ILI9341
-- ILI9488
-- ILI9486
-- HX8357B/HX8357D
-- ST7789
-- ST7735S
-- ST7796S
+![Example GUI_DEMO with ESP32 using LVGL](images/new_photo.jpg)
 
-## Monochrome
+Monochrome support:
 
-- SH1107
-- SSD1306
+![Example_monochrome demo with ESP32 using LVGL](images/new_mono.jpg)
 
-## e-Paper
+## Display and touch controllers
 
-- IL3820
-
-Supported touchscreen controllers:
-
-- XPT2046
-- FT3236
-- other FT6X36 or the FT6206 controllers should work as well (not tested)
-- STMPE610
-
-If your display controller is not supported consider contributing to this repo by
-adding support to it! [Contribute controller support](CONTRIBUTE_CONTROLLER_SUPPORT.md)
+The display and touch (indev) controllers are now into it's own repository, you can find it [here](https://github.com/lvgl/lvgl_esp32_drivers).
+To report any issue or add new display or touch (indev) drivers you can do so in the `lvgl_esp32_drivers` repo.
 
 ## Get started
-### Install the ESP32 SDK
-http://esp-idf.readthedocs.io/en/latest/
 
-Note:
+### Prerequisites
 
-This project tries to be compatible with the ESP-IDF v4.0.
-Instructions here are given for the v4.x toolchain using `idf.py`, but it is easy to translate to make.
-For example instead of running `idf.py menuconfig`, just run `make menuconfig`.
+- ESP-IDF Framework.
 
-### Build this repository standalone and run the demo.
+### Note
 
-Try this first to make sure your hardware is supported, wired and configured properly.
+This project tries to be compatible with both the ESP-IDF v3.x and v4.0, but using v4.0 is recommended.
+Instructions assume you are using the v4.x toolchain, otherwise use the make commands, e.g. instead of running `idf.py menuconfig`, run `make menuconfig`.
 
-1. Get this project: `git clone --recurse-submodules
-https://github.com/wireless-tag-cn/lv_port_esp32.git`
+### Build and run the demo.
 
-2. From its root run `idf.py menuconfig`
+1. Clone this project by `git clone --recurse-submodules https://github.com/lvgl/lv_port_esp32.git`, this will pull this repo and its submodules.
 
-3. Select your display kit or board and other options - see [config options](#configuration-options)
+2. Get into the created `lv_port_esp32` directory.
 
-4. For monochrome displays we suggest enabling the `unscii 8` font (Component config -> LVGL configuration -> FONT USAGE) and the MONO theme (Component config -> LVGL configuration -> THEME USAGE).
+3. Run `idf.py menuconfig`
 
-5. Store your project configuration.
+4. Configure LVGL in `Components config->LVGL Configuration`. For monochrome displays use the mono theme and we suggest enabling the `unscii 8` font.
 
-6. For monochrome displays edit the `lv_conf.h` file available on the `components/lvgl` directory to look like follows:
+5. Configure your display and/or touch controllers in `Components config->LVGL TFT Display Configuration` and `Components config->LVGL TOUCH Configuration`.
+
+6. Store your project configuration.
+
+7. Build the project with `idf.py build`
+
+8. If the build don't throw any errors, flash the demo with `idf.py -p (YOUR SERIAL PORT) flash` (with `make` this is just `make flash` - in 3.x PORT is configured in `menuconfig`)
+
+## Use LVGL in your ESP-IDF project
+
+LVGL now includes a Kconfig file which is used to configure most of the LVGL configuration options via menuconfig, so it's not necessary to use a custom `lv_conf.h` file.
+
+It is recommended to add LVGL as a submodule in your IDF project's git repo.
+
+From your project's root directory:
+1. Create a directory named `components` (if you don't have one already) with `mkdir -p components`.
+2. Clone the lvgl repository inside the `components` directory with `git submodule add https://github.com/lvgl/lvgl.git components/lvgl`
+3. Run `idf.py menuconfig`, go to `Component config` then `LVGL configuration` to configure LVGL.
+
+## Use lvgl_esp32_drivers in your project
+
+It is recommended to add [lvgl_esp32_drivers](https://github.com/lvgl/lvgl_esp32_drivers) as a submodule in your IDF project's git repo.
+
+From your project's root directory:
+1. Create a directory named `components` (if you don't have one already) with `mkdir -p components`.
+2. Clone the lvgl_esp32_drivers repository inside the `components` directory with `git submodule add https://github.com/lvgl/lvgl_esp32_drivers.git components/lvgl_esp32_drivers`
+3. Run `idf.py menuconfig`, go to `Component config` then `LVGL TFT configuration` and `LVGL TFT Display configuration` to configure lvgl_esp32_drivers.
+
+## Platformio support
+
+Using the [lv_platformio](https://github.com/lvgl/lv_platformio) project add the following lines to `platformio.ini` file:
 
 ```
-#define LV_THEME_DEFAULT_INIT               lv_theme_mono_init
-#define LV_THEME_DEFAULT_COLOR_PRIMARY      LV_COLOR_BLACK
-#define LV_THEME_DEFAULT_COLOR_SECONDARY    LV_COLOR_WHITE
-#define LV_THEME_DEFAULT_FLAG               0
-#define LV_THEME_DEFAULT_FONT_SMALL         &lv_font_unscii_8
-#define LV_THEME_DEFAULT_FONT_NORMAL        &lv_font_unscii_8
-#define LV_THEME_DEFAULT_FONT_SUBTITLE      &lv_font_unscii_8
-#define LV_THEME_DEFAULT_FONT_TITLE         &lv_font_unscii_8
+[env:esp32]
+platform = espressif32
+framework = espidf
+board = esp-wrover-kit
 ```
 
-7. `idf.py build`
+Change the default environment to `default_envs = esp32`.
 
-8. `idf.py -p (YOUR PORT) flash`
+Modify the `main.c` like this:
+
+```c
+#include "lvgl.h"
+
+// #include "driver.h"
+
+#include "demo.h"
+
+int app_main(void)
+{
+    lv_init();
+
+    /* Initialize your hardware. */
+    
+    /* hw_init(); */
+
+    demo_create();
+
+    /* Create the UI or start a task for it.
+     * In the end, don't forget to call `lv_task_handler` in a loop. */
+
+    /* hw_loop(); */
+
+    return 0;
+}
+```
+
+For more information see: [platformio with espidf framework compability](https://github.com/lvgl/lv_port_esp32/issues/168).
+
+# ESP32-S2 Support
+
+Support for ESP32-S2 variant is Work In Progress.
+Smaller displays (e.g. 320x240) work fine, but larger ones need testing.
+
+## Background
+
+ESP32-S2 has less on-chip SRAM than its predecessor ESP32 (520kB vs. 320kB).
+This causes problems with memory allocation with large LVGL display buffers as they don't fit into the on-chip memory
+and external PSRAM is not accessible by DMA.
+
+Moreover, static allocation to external PSRAM is not yet supported
+(see [GitHub issue](https://github.com/espressif/esp-idf/issues/6162)).
+
+At this momement, the buffers are dynamicaly allocated with DMA capabilty and memory allocator handles the rest.
